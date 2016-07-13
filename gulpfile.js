@@ -1,13 +1,11 @@
 // dependencies
-var browserify = require('browserify');
 var del = require('del');
-var buffer = require('vinyl-buffer');
-var source = require('vinyl-source-stream');
 var watchify = require('watchify');
 
 // gulp dependencies
 var gulp = require('gulp');
 var autoprefixer = require('gulp-autoprefixer');
+var concat = require('gulp-concat');
 var connect = require('gulp-connect');
 var gulpif = require('gulp-if');
 var gutil = require('gulp-util');
@@ -25,29 +23,18 @@ var copyLocations = [
     dest: './public/assets'
   },
   {
-    src: './src/image/**/*.*',
-    dest: './public/image'
-  },
-  {
     src: './src/index.html',
     dest: './public'
   },
   {
-    src: './node_modules/bootstrap/dist/css/bootstrap.css',
-    dest: './public/css'
-  },
-  {
     src: './src/vendor/**/*.*',
     dest: './public/vendor'
-  },
-  {
-    src: './src/js/sketches/**/*.*',
-    dest: './public/sketches'
   }
 ];
 
 var watchLocations = {
-  sass: './src/sass/**/*.scss'
+  sass: './src/sass/**/*.scss',
+  js: './src/js/**/*.js'
 };
 
 var destLocations = {
@@ -79,52 +66,6 @@ gulp.task('copy', function(cb) {
   cb();
 });
 
-/* BROWSERIFY+WATCHIFY */
-// var bundler = browserify({
-//   basedir: './src/js/',
-//   entries: ['index.js'],
-//   debug: true
-// }).transform("babelify", {
-//   presets: ["es2015"]
-// });
-// 
-// gulp.task('prod-js', function() {
-//   return bundler.bundle()
-//   .pipe(source('bundle.js'))
-//   .pipe(buffer())
-//   .pipe(uglify({mangle: false}))
-//   .pipe(gulp.dest('./public/js'));
-// });
-// 
-// gulp.task('prod-sass', function() {
-//   gulp.src('src/sass/**/*.scss')
-//       .pipe(plumber())
-//       .pipe(sass())
-//       .pipe(autoprefixer())
-//       .pipe(cleancss())
-//       .pipe(gulp.dest('./public/css'));
-// });
-// 
-// gulp.task('watchify', function() {
-//   var watcher = watchify(bundler);
-//   return watcher
-//   .on('error', gutil.log.bind(gutil, 'Browserify Error'))
-//   .on('update', function() {
-//     watcher.bundle()
-//     .pipe(source('bundle.js'))
-//     .pipe(buffer())
-//     .pipe(sourcemaps.init({loadMaps: true}))
-//     .pipe(sourcemaps.write())
-//     .pipe(gulp.dest('./public/js'))
-//     .pipe(connect.reload());
-// 
-//     gutil.log('Updated Javascript sources');
-//   })
-//   .bundle()
-//   .pipe(source('bundle.js'))
-//   .pipe(gulp.dest('./public/js'));
-// });
-
 /* SASS */
 gulp.task('sass', function() {
   gulp.src('src/sass/**/*.scss')
@@ -141,6 +82,18 @@ gulp.task('sass:watch', function() {
   });
 });
 
+gulp.task('scripts', function() {
+  gulp.src('./src/js/**/*.*')
+      .pipe(concat('stack.js'))
+      .pipe(gulp.dest('./public/js'));
+});
+
+gulp.task('scripts:watch', function() {
+  watch(watchLocations.js, function() {
+    gulp.start('scripts');
+  });
+});
+
 /* SERVER */
 gulp.task('server', function() {
   connect.server({
@@ -150,13 +103,12 @@ gulp.task('server', function() {
   });
 });
 
-
 /* MAIN TASKS */
 gulp.task('dev', ['clean'], function() {
   gulp.start('copy');
   gulp.start('sass');
   gulp.start('sass:watch');
-//   gulp.start('watchify');
+  gulp.start('scripts');
+  gulp.start('scripts:watch');
   gulp.start('server');
 });
-
