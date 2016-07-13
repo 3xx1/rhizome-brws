@@ -7,13 +7,9 @@ var gulp = require('gulp');
 var autoprefixer = require('gulp-autoprefixer');
 var concat = require('gulp-concat');
 var connect = require('gulp-connect');
-var gulpif = require('gulp-if');
 var gutil = require('gulp-util');
-var cleancss = require('gulp-clean-css');
 var sass = require('gulp-sass');
-var sourcemaps = require('gulp-sourcemaps');
 var plumber = require('gulp-plumber');
-var uglify = require('gulp-uglify');
 var watch = require('gulp-watch');
 
 // location maps
@@ -85,7 +81,8 @@ gulp.task('sass:watch', function() {
 gulp.task('scripts', function() {
   gulp.src('./src/js/**/*.*')
       .pipe(concat('stack.js'))
-      .pipe(gulp.dest('./public/js'));
+      .pipe(gulp.dest('./public/js'))
+      .pipe(connect.reload());
 });
 
 gulp.task('scripts:watch', function() {
